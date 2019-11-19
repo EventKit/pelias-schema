@@ -7,6 +7,7 @@
 const elastictest = require('elastictest');
 const schema = require('../schema');
 const config = require('pelias-config').generate();
+const getTotalHits = require('./_hits_total_helper');
 
 module.exports.tests = {};
 
@@ -14,7 +15,10 @@ module.exports.tests = {};
 module.exports.tests.index_and_retrieve_expanded_form = function(test, common){
   test( 'index and retrieve expanded form', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index a document with a name which contains a synonym (center)
@@ -40,7 +44,7 @@ module.exports.tests.index_and_retrieve_expanded_form = function(test, common){
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -58,7 +62,7 @@ module.exports.tests.index_and_retrieve_expanded_form = function(test, common){
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -71,7 +75,10 @@ module.exports.tests.index_and_retrieve_expanded_form = function(test, common){
 module.exports.tests.index_and_retrieve_contracted_form = function(test, common){
   test( 'index and retrieve contracted form', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index a document with a name which contains a synonym (center)
@@ -97,7 +104,7 @@ module.exports.tests.index_and_retrieve_contracted_form = function(test, common)
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -115,7 +122,7 @@ module.exports.tests.index_and_retrieve_contracted_form = function(test, common)
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -128,7 +135,10 @@ module.exports.tests.index_and_retrieve_contracted_form = function(test, common)
 module.exports.tests.index_and_retrieve_mixed_form_1 = function(test, common){
   test( 'index and retrieve mixed form 1', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index a document with a name which contains a synonym (center)
@@ -154,7 +164,7 @@ module.exports.tests.index_and_retrieve_mixed_form_1 = function(test, common){
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -172,7 +182,7 @@ module.exports.tests.index_and_retrieve_mixed_form_1 = function(test, common){
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -185,7 +195,10 @@ module.exports.tests.index_and_retrieve_mixed_form_1 = function(test, common){
 module.exports.tests.index_and_retrieve_mixed_form_2 = function(test, common){
   test( 'index and retrieve mixed form 2', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index a document with a name which contains a synonym (center)
@@ -211,7 +224,7 @@ module.exports.tests.index_and_retrieve_mixed_form_2 = function(test, common){
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -229,7 +242,7 @@ module.exports.tests.index_and_retrieve_mixed_form_2 = function(test, common){
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });

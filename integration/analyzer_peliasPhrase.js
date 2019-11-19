@@ -4,13 +4,17 @@ const elastictest = require('elastictest');
 const schema = require('../schema');
 const punctuation = require('../punctuation');
 const config = require('pelias-config').generate();
+const getTotalHits = require('./_hits_total_helper');
 
 module.exports.tests = {};
 
 module.exports.tests.analyze = function(test, common){
   test( 'analyze', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     var assertAnalysis = common.analyze.bind( null, suite, t, 'peliasPhrase' );
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
@@ -55,7 +59,10 @@ module.exports.tests.analyze = function(test, common){
 module.exports.tests.functional = function(test, common){
   test( 'functional', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     var assertAnalysis = common.analyze.bind( null, suite, t, 'peliasPhrase' );
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
@@ -102,7 +109,10 @@ module.exports.tests.functional = function(test, common){
 module.exports.tests.tokenizer = function(test, common){
   test( 'tokenizer', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     var assertAnalysis = common.analyze.bind( null, suite, t, 'peliasPhrase' );
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
@@ -128,7 +138,10 @@ module.exports.tests.tokenizer = function(test, common){
 module.exports.tests.slop = function(test, common){
   test( 'slop', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     var assertAnalysis = common.analyze.bind( null, suite, t, 'peliasPhrase' );
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
@@ -146,8 +159,10 @@ module.exports.tests.slop = function(test, common){
 module.exports.tests.slop_query = function(test, common){
   test( 'slop query', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
-    var assertAnalysis = common.analyze.bind( null, suite, t, 'peliasPhrase' );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index 'Lake Cayuga'
@@ -215,7 +230,7 @@ module.exports.tests.slop_query = function(test, common){
         searchType: 'dfs_query_then_fetch',
         body: buildQuery('Lake Cayuga')
       }, function( err, res ){
-        t.equal( res.hits.total, 3 );
+        t.equal( getTotalHits(res.hits), 3 );
         var hits = res.hits.hits;
 
         t.equal( hits[0]._source.name.default, 'Lake Cayuga' );
@@ -242,7 +257,10 @@ module.exports.tests.slop_query = function(test, common){
 module.exports.tests.slop = function(test, common){
   test( 'slop', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index a document
@@ -273,7 +291,7 @@ module.exports.tests.slop = function(test, common){
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -286,7 +304,10 @@ module.exports.tests.slop = function(test, common){
 module.exports.tests.unicode = function(test, common){
   test( 'normalization', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     var assertAnalysis = common.analyze.bind( null, suite, t, 'peliasPhrase' );
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 

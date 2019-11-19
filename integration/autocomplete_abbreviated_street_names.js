@@ -7,6 +7,7 @@
 const elastictest = require('elastictest');
 const schema = require('../schema');
 const config = require('pelias-config').generate();
+const getTotalHits = require('./_hits_total_helper');
 
 module.exports.tests = {};
 
@@ -14,7 +15,10 @@ module.exports.tests = {};
 module.exports.tests.index_expanded_form_search_contracted = function(test, common){
   test( 'index expanded and retrieve contracted form', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index a document with a name which contains a synonym (center)
@@ -40,7 +44,7 @@ module.exports.tests.index_expanded_form_search_contracted = function(test, comm
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -58,7 +62,7 @@ module.exports.tests.index_expanded_form_search_contracted = function(test, comm
         }}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'document found' );
+        t.equal( getTotalHits(res.hits), 1, 'document found' );
         done();
       });
     });
@@ -102,7 +106,7 @@ module.exports.tests.index_expanded_form_search_contracted = function(test, comm
 //         }}}
 //       }, function( err, res ){
 //         t.equal( err, undefined );
-//         t.equal( res.hits.total, 1, 'document found' );
+//         t.equal( getTotalHits(res.hits), 1, 'document found' );
 //         done();
 //       });
 //     });
@@ -123,7 +127,7 @@ module.exports.tests.index_expanded_form_search_contracted = function(test, comm
 //         }}}
 //       }, function( err, res ){
 //         t.equal( err, undefined );
-//         t.equal( res.hits.total, 1, 'document found' );
+//         t.equal( getTotalHits(res.hits), 1, 'document found' );
 //         done();
 //       });
 //     });

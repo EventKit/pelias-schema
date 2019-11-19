@@ -3,13 +3,17 @@
 const elastictest = require('elastictest');
 const schema = require('../schema');
 const config = require('pelias-config').generate();
+const getTotalHits = require('./_hits_total_helper');
 
 module.exports.tests = {};
 
 module.exports.tests.source_filter = function(test, common){
   test( 'source filter', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite(common.clientOpts, {
+      schema: schema,
+      create: { include_type_name: true }
+    });
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index some docs
@@ -52,7 +56,7 @@ module.exports.tests.source_filter = function(test, common){
           }
         }}
       }, function( err, res ){
-        t.equal( res.hits.total, 2 );
+        t.equal( getTotalHits(res.hits), 2 );
         done();
       });
     });
@@ -68,7 +72,7 @@ module.exports.tests.source_filter = function(test, common){
           }
         }}
       }, function( err, res ){
-        t.equal( res.hits.total, 2 );
+        t.equal( getTotalHits(res.hits), 2 );
         done();
       });
     });
@@ -84,7 +88,7 @@ module.exports.tests.source_filter = function(test, common){
           }
         }}
       }, function( err, res ){
-        t.equal( res.hits.total, 2 );
+        t.equal( getTotalHits(res.hits), 2 );
         done();
       });
     });
@@ -99,7 +103,7 @@ module.exports.tests.source_filter = function(test, common){
           { term: { source_id: 'dataset/1' } }
         ]}}}
       }, function( err, res ){
-        t.equal( res.hits.total, 1 );
+        t.equal( getTotalHits(res.hits), 1 );
         done();
       });
     });
@@ -115,7 +119,7 @@ module.exports.tests.source_filter = function(test, common){
           }
         }}
       }, function( err, res ){
-        t.equal( res.hits.total, 0 );
+        t.equal( getTotalHits(res.hits), 0 );
         done();
       });
     });
@@ -131,7 +135,7 @@ module.exports.tests.source_filter = function(test, common){
           }
         }}
       }, function( err, res ){
-        t.equal( res.hits.total, 0 );
+        t.equal( getTotalHits(res.hits), 0 );
         done();
       });
     });
@@ -147,7 +151,7 @@ module.exports.tests.source_filter = function(test, common){
           }
         }}
       }, function( err, res ){
-        t.equal( res.hits.total, 1 );
+        t.equal( getTotalHits(res.hits), 1 );
         done();
       });
     });
