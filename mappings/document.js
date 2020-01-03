@@ -138,6 +138,19 @@ var schema = {
       }
     },
 
+    polygon: {
+      type: 'object',
+      dynamic: 'strict',
+      properties: {
+        coordinates: {
+          type: 'text'
+        },
+        type: {
+          type: 'text'
+        }
+      },
+    },
+
     // geography
     center_point: require('./partial/centroid'),
     shape: require('./partial/shape'),
