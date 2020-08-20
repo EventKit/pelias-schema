@@ -159,23 +159,12 @@ var schema = {
       }
     },
 
-    polygon: {
-      type: 'object',
-      dynamic: 'strict',
-      properties: {
-        coordinates: {
-          type: 'text'
-        },
-        type: {
-          type: 'text'
-        }
-      },
-    },
 
     // geography
     center_point: require('./partial/centroid'),
     shape: require('./partial/shape'),
     bounding_box: require('./partial/boundingbox'),
+    polygon: require('./partial/polygon'),
 
     // meta info
     source_id: keyword,

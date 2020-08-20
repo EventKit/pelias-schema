@@ -2407,6 +2407,18 @@
         "type": "keyword",
         "index": false
       },
+      "polygon": {
+        "type": "object",
+        "dynamic": "strict",
+        "properties": {
+          "coordinates": {
+            "type": "keyword"
+          },
+          "type": {
+            "type": "keyword"
+          }
+        }
+      },
       "source_id": {
         "type": "keyword",
         "doc_values": false
