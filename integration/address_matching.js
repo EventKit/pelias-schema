@@ -1,15 +1,15 @@
 // validate analyzer is behaving as expected
 
 const elastictest = require('elastictest');
-const schema = require('../schema');
 const config = require('pelias-config').generate();
+const getTotalHits = require('./_hits_total_helper');
 
 module.exports.tests = {};
 
 module.exports.tests.functional = function(test, common){
   test( 'functional', function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite( common.clientOpts, common.create );
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index some docs
@@ -75,7 +75,7 @@ module.exports.tests.functional = function(test, common){
         ]}}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'match street number' );
+        t.equal( getTotalHits(res.hits), 1, 'match street number' );
         done();
       });
     });
@@ -90,7 +90,7 @@ module.exports.tests.functional = function(test, common){
         ]}}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 2, 'match street name' );
+        t.equal( getTotalHits(res.hits), 2, 'match street name' );
         done();
       });
     });
@@ -105,7 +105,7 @@ module.exports.tests.functional = function(test, common){
         ]}}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 2, 'match street name - abbr' );
+        t.equal( getTotalHits(res.hits), 2, 'match street name - abbr' );
         done();
       });
     });
@@ -120,7 +120,7 @@ module.exports.tests.functional = function(test, common){
         ]}}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 3, 'match zip - numeric' );
+        t.equal( getTotalHits(res.hits), 3, 'match zip - numeric' );
         done();
       });
     });
@@ -135,7 +135,7 @@ module.exports.tests.functional = function(test, common){
         ]}}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'match zip - string' );
+        t.equal( getTotalHits(res.hits), 1, 'match zip - string' );
         done();
       });
     });
@@ -150,7 +150,7 @@ module.exports.tests.functional = function(test, common){
         ]}}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 3, 'match zip - numeric - punct' );
+        t.equal( getTotalHits(res.hits), 3, 'match zip - numeric - punct' );
         done();
       });
     });
@@ -165,7 +165,7 @@ module.exports.tests.functional = function(test, common){
         ]}}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 3, 'match zip - numeric - whitespace' );
+        t.equal( getTotalHits(res.hits), 3, 'match zip - numeric - whitespace' );
         done();
       });
     });
@@ -180,7 +180,7 @@ module.exports.tests.functional = function(test, common){
         ]}}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'match zip - string - punct' );
+        t.equal( getTotalHits(res.hits), 1, 'match zip - string - punct' );
         done();
       });
     });
@@ -195,7 +195,7 @@ module.exports.tests.functional = function(test, common){
         ]}}}
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, 1, 'match zip - string - whitespace' );
+        t.equal( getTotalHits(res.hits), 1, 'match zip - string - whitespace' );
         done();
       });
     });
@@ -217,7 +217,7 @@ module.exports.tests.venue_vs_address = function(test, common){
     // Unfortunately there seems to be no easy way of fixing this, it's an artifact of us
     // storing the street names in the name.default field.
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite( common.clientOpts, common.create );
     suite.action( function( done ){ setTimeout( done, 500 ); }); // wait for es to bring some shards up
 
     // index a venue
@@ -307,7 +307,7 @@ module.exports.tests.venue_vs_address = function(test, common){
         }
       }, function( err, res ){
         t.equal( err, undefined );
-        t.equal( res.hits.total, TOTAL_ADDRESS_DOCS+1, 'matched all docs' );
+        t.equal( getTotalHits(res.hits), TOTAL_ADDRESS_DOCS+1, 'matched all docs' );
         t.equal( res.hits.hits[TOTAL_ADDRESS_DOCS]._id, '1', 'exact name match first' );
         done();
       });
