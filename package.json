@@ -35,7 +35,7 @@
     "elasticsearch": "^16.0.0",
     "glob": "^7.1.6",
     "lodash": "^4.17.15",
-    "pelias-config": "git://github.com/eventkit/pelias-config.git#syncUpstream",
+    "pelias-config": "git://github.com/eventkit/pelias-config.git#v4.12.1.1",
     "pelias-logger": "^1.3.0",
     "semver": "^7.1.1"
   },
