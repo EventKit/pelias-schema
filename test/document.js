@@ -22,7 +22,7 @@ module.exports.tests.properties = function(test, common) {
 // should contain the correct field definitions
 module.exports.tests.fields = function(test, common) {
   var fields = ['source', 'layer', 'name', 'phrase', 'address_parts',
-    'parent', 'center_point', 'shape', 'bounding_box', 'source_id', 'category',
+    'parent', 'center_point', 'shape', 'bounding_box', 'polygon', 'source_id', 'category',
     'population', 'popularity', 'addendum'];
   test('fields specified', function(t) {
     t.deepEqual(Object.keys(schema.properties), fields);
@@ -70,10 +70,19 @@ module.exports.tests.address_analysis = function(test, common) {
   });
 
   // $street analysis is discussed in: https://github.com/pelias/schema/pull/77
+  // and https://github.com/pelias/api/pull/1444
   test('street', function(t) {
     t.equal(prop.street.type, 'text');
     t.equal(prop.street.analyzer, 'peliasStreet');
-    t.equal(prop.street.search_analyzer, 'peliasStreet');
+    t.equal(prop.street.search_analyzer, 'peliasQuery');
+    t.end();
+  });
+
+  // $cross_street analysis
+  test('cross_street', function (t) {
+    t.equal(prop.cross_street.type, 'text');
+    t.equal(prop.cross_street.analyzer, 'peliasStreet');
+    t.equal(prop.cross_street.search_analyzer, 'peliasQuery');
     t.end();
   });
 
@@ -185,7 +194,7 @@ module.exports.tests.dynamic_templates = function(test, common) {
 // _all should be disabled
 module.exports.tests.all_disabled = function(test, common) {
   test('_all disabled', function(t) {
-    t.equal(schema._all.enabled, false, '_all disabled');
+    t.false(schema._all, '_all undefined');
     t.end();
   });
 };

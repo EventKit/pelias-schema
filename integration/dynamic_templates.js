@@ -1,7 +1,6 @@
 // http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-root-object-type.html#_dynamic_templates
 
 const elastictest = require('elastictest');
-const schema = require('../schema');
 const config = require('pelias-config').generate();
 
 module.exports.tests = {};
@@ -32,7 +31,7 @@ module.exports.all = function (tape, common) {
 function nameAssertion( analyzer, common ){
   return function(t){
 
-    var suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    var suite = new elastictest.Suite( common.clientOpts, common.create );
     const _type = config.schema.typeName;
 
     // index a document from a normal document layer
@@ -51,10 +50,10 @@ function nameAssertion( analyzer, common ){
 
       suite.client.indices.getMapping({
         index: suite.props.index,
-        type: _type
+        include_type_name: false
       }, (err, res) => {
 
-        const properties = res[suite.props.index].mappings[_type].properties;
+        const properties = res[suite.props.index].mappings.properties;
         t.equal( properties.name.dynamic, 'true' );
 
         const nameProperties = properties.name.properties;
@@ -71,7 +70,7 @@ function nameAssertion( analyzer, common ){
 function phraseAssertion( analyzer, common ){
   return function(t){
 
-    const suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    const suite = new elastictest.Suite( common.clientOpts, common.create );
     const _type = config.schema.typeName;
 
     // index a document from a normal document layer
@@ -90,10 +89,10 @@ function phraseAssertion( analyzer, common ){
 
       suite.client.indices.getMapping({
         index: suite.props.index,
-        type: _type
+        include_type_name: false
       }, ( err, res ) => {
 
-        const properties = res[suite.props.index].mappings[_type].properties;
+        const properties = res[suite.props.index].mappings.properties;
         t.equal( properties.phrase.dynamic, 'true' );
 
         const phraseProperties = properties.phrase.properties;
@@ -110,7 +109,7 @@ function phraseAssertion( analyzer, common ){
 function addendumAssertion( namespace, value, common ){
   return function(t){
 
-    const suite = new elastictest.Suite( common.clientOpts, { schema: schema } );
+    const suite = new elastictest.Suite( common.clientOpts, common.create );
     const _type = config.schema.typeName;
 
     // index a document including the addendum
@@ -128,10 +127,10 @@ function addendumAssertion( namespace, value, common ){
     suite.assert( done => {
       suite.client.indices.getMapping({
         index: suite.props.index,
-        type: _type
+        include_type_name: false,
       }, ( err, res ) => {
 
-        const properties = res[suite.props.index].mappings[_type].properties;
+        const properties = res[suite.props.index].mappings.properties;
         t.equal( properties.addendum.dynamic, 'true' );
 
         const addendumProperties = properties.addendum.properties;

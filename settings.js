@@ -1,20 +1,7 @@
 const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
 const peliasConfig = require('pelias-config');
 const punctuation = require('./punctuation');
-const synonymFile = require('./synonyms/parser');
-
-// load synonyms from disk
-const synonyms = fs.readdirSync(path.join(__dirname, 'synonyms'))
-                 .sort()
-                 .filter( f => f.match(/\.txt$/) )
-                 .reduce(( acc, cur ) => {
-                   acc[cur.replace('.txt','')] = synonymFile(
-                     path.join(__dirname, 'synonyms', cur)
-                   );
-                   return acc;
-                 }, {});
+const synonyms = require('./synonyms/loader').load();
 
 require('./configValidation').validate(peliasConfig.generate());
 
@@ -23,13 +10,18 @@ function generate(){
 
   // Default settings
   var settings = {
+    "index": {
+      "similarity": {
+        "peliasDefaultSimilarity": {
+          "type": "BM25",
+          "k1": 1.2,
+          "b": 0.75
+        }
+      }
+    },
     "analysis": {
       "tokenizer": {
-        "peliasNameTokenizer": {
-          "type": "pattern",
-          "pattern": "[\\s,/\\\\-]+"
-        },
-        "peliasStreetTokenizer": {
+        "peliasTokenizer": {
           "type": "pattern",
           "pattern": "[\\s,/\\\\-]+"
         }
@@ -37,13 +29,14 @@ function generate(){
       "analyzer": {
         "peliasAdmin": {
           "type": "custom",
-          "tokenizer": "peliasNameTokenizer",
+          "tokenizer": "peliasTokenizer",
           "char_filter" : ["punctuation", "nfkc_normalizer"],
           "filter": [
             "lowercase",
-            "icu_folding",
             "trim",
-            "custom_admin",
+            "synonyms/custom_admin/multiword",
+            "admin_synonyms_multiplexer",
+            "icu_folding",
             "word_delimiter",
             "unique_only_same_position",
             "notnull",
@@ -52,16 +45,14 @@ function generate(){
         },
         "peliasIndexOneEdgeGram" : {
           "type": "custom",
-          "tokenizer" : "peliasNameTokenizer",
+          "tokenizer" : "peliasTokenizer",
           "char_filter" : ["punctuation", "nfkc_normalizer"],
           "filter": [
             "lowercase",
-            "icu_folding",
             "trim",
-            "custom_name",
-            "street_suffix",
-            "directionals",
-            "ampersand",
+            "synonyms/custom_name/multiword",
+            "name_synonyms_multiplexer",
+            "icu_folding",
             "remove_ordinals",
             "removeAllZeroNumericPrefix",
             "peliasOneEdgeGramFilter",
@@ -72,12 +63,12 @@ function generate(){
         },
         "peliasQuery": {
           "type": "custom",
-          "tokenizer": "peliasNameTokenizer",
+          "tokenizer": "peliasTokenizer",
           "char_filter": ["punctuation", "nfkc_normalizer"],
           "filter": [
-            "icu_folding",
             "lowercase",
             "trim",
+            "icu_folding",
             "remove_ordinals",
             "removeAllZeroNumericPrefix",
             "unique_only_same_position",
@@ -86,16 +77,14 @@ function generate(){
         },
         "peliasPhrase": {
           "type": "custom",
-          "tokenizer":"peliasNameTokenizer",
+          "tokenizer":"peliasTokenizer",
           "char_filter" : ["punctuation", "nfkc_normalizer"],
           "filter": [
             "lowercase",
             "trim",
             "remove_duplicate_spaces",
-            "ampersand",
-            "custom_name",
-            "street_suffix",
-            "directionals",
+            "synonyms/custom_name/multiword",
+            "name_synonyms_multiplexer",
             "icu_folding",
             "remove_ordinals",
             "unique_only_same_position",
@@ -106,11 +95,11 @@ function generate(){
         "peliasZip": {
           "type": "custom",
           "tokenizer":"keyword",
-          "char_filter" : ["alphanumeric"],
+          "char_filter": ["alphanumeric", "nfkc_normalizer"],
           "filter": [
             "lowercase",
-            "icu_folding",
             "trim",
+            "icu_folding",
             "unique_only_same_position",
             "notnull"
           ]
@@ -118,11 +107,11 @@ function generate(){
         "peliasUnit": {
           "type": "custom",
           "tokenizer":"keyword",
-          "char_filter" : ["alphanumeric"],
+          "char_filter": ["alphanumeric", "nfkc_normalizer"],
           "filter": [
             "lowercase",
-            "icu_folding",
             "trim",
+            "icu_folding",
             "unique_only_same_position",
             "notnull"
           ]
@@ -134,15 +123,14 @@ function generate(){
         },
         "peliasStreet": {
           "type": "custom",
-          "tokenizer":"peliasStreetTokenizer",
+          "tokenizer":"peliasTokenizer",
           "char_filter" : ["punctuation", "nfkc_normalizer"],
           "filter": [
             "lowercase",
             "trim",
             "remove_duplicate_spaces",
-            "custom_street",
-            "street_suffix",
-            "directionals",
+            "synonyms/custom_street/multiword",
+            "street_synonyms_multiplexer",
             "icu_folding",
             "remove_ordinals",
             "trim",
@@ -153,6 +141,37 @@ function generate(){
         }
       },
       "filter" : {
+        "street_synonyms_multiplexer": {
+          "type": "multiplexer",
+          "preserve_original": false,
+          "filters": [
+            "synonyms/custom_street",
+            "synonyms/personal_titles",
+            "synonyms/streets",
+            "synonyms/directionals"
+          ]
+        },
+        "name_synonyms_multiplexer": {
+          "type": "multiplexer",
+          "preserve_original": false,
+          "filters": [
+            "synonyms/custom_name",
+            "synonyms/personal_titles",
+            "synonyms/place_names",
+            "synonyms/streets",
+            "synonyms/directionals",
+            "synonyms/punctuation"
+          ]
+        },
+        "admin_synonyms_multiplexer": {
+          "type": "multiplexer",
+          "preserve_original": false,
+          "filters": [
+            "synonyms/custom_admin",
+            "synonyms/personal_titles",
+            "synonyms/place_names"
+          ]
+        },
         "notnull" :{
           "type" : "length",
           "min" : 1
@@ -210,20 +229,33 @@ function generate(){
   };
 
   // dynamically create filters for all synonym files in the ./synonyms directory.
-  // each filter is given the same name as the file, minus the extension.
-  for( var key in synonyms ){
-    settings.analysis.filter[key] = {
+  // each filter is given the same name as the file, paths separators are replaced with
+  // underscores and the file extension is removed.
+  // note: if no synonym entries are present in the list we use an array
+  // containing an empty space to avoid elasticsearch schema parsing errors.
+  _.each(synonyms, (entries, name) => {
+
+    // same tokenizer regex as above except without comma
+    // (which is a delimeter within the synonym files)
+    const tokenizerRegex = new RegExp('[\\s/\\\\-]+');
+    const singleWordEntries = entries.filter(e => !tokenizerRegex.test(e))
+    const multiWordEntries = entries.filter(e => tokenizerRegex.test(e))
+
+    // generate a filter containing single-word synonyms
+    settings.analysis.filter[`synonyms/${name}`] = {
       "type": "synonym",
-      "synonyms": !!synonyms[key].length ? synonyms[key] : ['']
+      "synonyms": !_.isEmpty(singleWordEntries) ? singleWordEntries : ['']
     };
-  }
+
+    // generate a filter containing multi-word synonyms
+    settings.analysis.filter[`synonyms/${name}/multiword`] = {
+      "type": "synonym",
+      "synonyms": !_.isEmpty(multiWordEntries) ? multiWordEntries : ['']
+    };
+  });
 
   // Merge settings from pelias/config
-  if( 'object' === typeof config &&
-      'object' === typeof config.elasticsearch &&
-      'object' === typeof config.elasticsearch.settings ){
-    return _.merge({}, settings, config.elasticsearch.settings);
-  }
+  settings = _.merge({}, settings, _.get(config, 'elasticsearch.settings', {}));
 
   return settings;
 }

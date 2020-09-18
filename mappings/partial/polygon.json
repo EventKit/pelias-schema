@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "dynamic": "strict",
+  "properties": {
+    "coordinates": {
+      "type": "keyword"
+    },
+    "type": {
+      "type": "keyword"
+    }
+  }
+}
